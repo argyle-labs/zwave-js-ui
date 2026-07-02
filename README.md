@@ -14,7 +14,7 @@ This repo is **self-contained** — the steps below run zwave-js-ui **by hand, w
 
 ## Run it without orca
 
-### Docker / Podman
+### Docker Compose
 
 ```yaml
 # compose.yml
@@ -34,7 +34,27 @@ services:
 docker compose up -d
 ```
 
-Podman: the same file with `podman-compose up -d`.
+### Other runtimes
+
+**Podman** — the compose above works with `podman compose up -d`, or run it directly:
+
+```sh
+podman run -d --name zwave-js-ui --restart unless-stopped \
+    -p 8091:8091/tcp \
+    -p 3000:3000/tcp \
+    -v ./store:/usr/src/app/store \
+    zwavejs/zwave-js-ui:latest
+```
+
+**LXC** — on a container-capable LXC (e.g. a Proxmox LXC with nesting enabled) run the same image via Docker/Podman as above, or install zwave-js-ui from upstream directly on the guest: <https://github.com/zwave-js/zwave-js-ui>.
+
+**VM** — install zwave-js-ui from upstream (<https://github.com/zwave-js/zwave-js-ui>) or run the same container image inside the VM; expose port `8091`.
+
+**Unraid** — add via *Community Applications*, or *Docker → Add Container* with image `zwavejs/zwave-js-ui:latest`, port `8091`, and the volume paths above.
+
+### Dependencies
+
+Requires a Z-Wave controller (USB stick) passed through to the container; MQTT is optional.
 
 ### Ports & data
 
