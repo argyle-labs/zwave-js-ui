@@ -1,0 +1,39 @@
+# Proxmox LXC config for Z-Wave JS UI — /etc/pve/lxc/<vmid>.conf
+#
+# Service: Z-Wave JS UI (Z-Wave controller UI + MQTT gateway)
+# Ports:   8091 (web UI), 3000 (Z-Wave JS websocket server for HA integration)
+# Requires: a USB Z-Wave controller (e.g. Aeotec Z-Stick, Zooz ZST10) passed
+#           through from the host — see the device section below.
+#
+# Right-sized as captured from a live host: 2 cores / 512 MB RAM / 4 GB disk.
+
+arch: amd64
+cores: 2
+memory: 512
+swap: 512
+hostname: zwave-js-ui
+ostype: debian
+onboot: 1
+features: nesting=1
+rootfs: local-lvm:vm-<vmid>-disk-1,size=4G
+
+# Network — replace with your LAN addressing (or use ip=dhcp).
+# hwaddr is auto-assigned by Proxmox on create; do not hard-code one.
+net0: name=eth0,bridge=vmbr0,ip=dhcp,type=veth
+
+# Bind mounts (host must have these paths available)
+mp0: /mnt/<pool>/backups/services/zwave,mp=/mnt/backups
+mp1: /var/lib/zwave-js-ui/zwave-js-ui,mp=/var/lib/zwave-store
+
+timezone: America/Denver
+tags: community-script;smarthome;zwave
+
+# ─── USB Z-Wave controller passthrough ────────────────────────────────────────
+# The controller enumerates as a CDC-ACM device (/dev/ttyACM0). For a stable
+# path across reboots, prefer a /dev/serial/by-id/... symlink on the host and
+# bind that instead. The char-device allow lines cover ttyACM (166) plus the
+# usual tty majors (188/189):
+lxc.cgroup2.devices.allow: c 188:* rwm
+lxc.cgroup2.devices.allow: c 189:* rwm
+lxc.cgroup2.devices.allow: c 166:* rwm
+lxc.mount.entry: /dev/ttyACM0 dev/ttyACM0 none bind,optional,create=file
