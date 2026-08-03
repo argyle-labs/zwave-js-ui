@@ -13,7 +13,7 @@ Z-Wave controller and MQTT bridge. Manages Z-Wave devices and publishes state to
 | IP | <ip> (static DHCP lease) |
 | OS | Debian 12 |
 | CPU | 2 cores |
-| RAM | 1 GB |
+| RAM | 512 MB |
 | Disk | 4 GB (local-lvm) |
 | onboot | yes |
 | USB passthrough | Z-Wave stick → `/dev/ttyACM0` |
@@ -51,8 +51,8 @@ Z-Wave JS UI is configured via its web UI at http://<ip>:8091.
 
 Key settings:
 - Serial port: `/dev/ttyACM0`
-- MQTT broker: `mqtt://<ip>` (LXC 100)
-- Home Assistant integration: via MQTT (not direct WebSocket — use MQTT mode for reliability)
+- MQTT broker (optional): `mqtt://<mqtt-host>`
+- Home Assistant integration: enable the Z-Wave JS WebSocket server on port `3000`, then point the HA Z-Wave JS integration at `ws://<ip>:3000`
 
 ---
 
@@ -72,7 +72,7 @@ mp1: /var/lib/zwave-js-ui/zwave-js-ui,mp=/var/lib/zwave-store
 
 The store lives at `/var/lib/zwave-store` (deliberately **outside** `/opt/zwave-js-ui`) so the community-scripts `update` flow — which does `rm -rf /opt/zwave-js-ui` — cannot follow the bind mount and wipe the host store. Previously the mount target was inside `/opt/zwave-js-ui/mnt/...`, and every run of `update` destroyed all config + security keys. **Do not put the store back inside `/opt/zwave-js-ui`.**
 
-The store lives on <host> (not <host>) so ZwaveJS stays operational if the NAS goes down. It survives LXC rebuilds because data is outside the LXC rootfs.
+The store lives on the LXC host's local filesystem (not the NAS) so Z-Wave JS UI stays operational if the NAS goes down. It survives LXC rebuilds because data is outside the LXC rootfs.
 
 ## Backup
 
@@ -102,11 +102,10 @@ pct start 108
 
 ## Planned: Move to IoT VLAN
 
-Z-Wave JS UI is planned to move to IoT VLAN (<subnet>). OPNsense will have a rule allowing LAN access on port 8091. See [home-assistant.md](home-assistant.md).
+Z-Wave JS UI is planned to move to IoT VLAN (<subnet>). The firewall will have a rule allowing LAN access on port 8091.
 
 ---
 
 ## Related
 
-- [mqtt.md](mqtt.md)
-- [home-assistant.md](home-assistant.md)
+- [Z-Wave JS UI on a Proxmox LXC](deploy-lxc.md)
