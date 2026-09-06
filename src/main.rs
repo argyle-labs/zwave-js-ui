@@ -1,10 +1,17 @@
 //! Dynamic (subprocess) entrypoint for the zwave-js-ui plugin.
 //!
-//! The toolkit's `serve_service_plugin!` emits `fn main`, serving this plugin over the orca
-//! socket. The plugin is a
-//! `[[bin]]`, owns no runtime, and reaches orca only through the socket.
-plugin_toolkit::serve_service_plugin! {
-    name: "zwave-js-ui",
-    target_compat: "any",
-    backend: zwave_js_ui::ZwaveJsUiBackend::new("zwave-js-ui"),
+//! A single-facet `service` plugin: the [`Plugin`](plugin_toolkit::plugin::Plugin)
+//! builder registers the [`ServiceBackend`] and emits all the wire dispatch, so
+//! the plugin hand-writes no op strings and owns no runtime — it reaches orca
+//! only through the socket.
+plugin_toolkit::instrument::bootstrap!();
+
+use plugin_toolkit::plugin::Plugin;
+use zwave_js_ui::ZwaveJsUiBackend;
+
+fn main() -> plugin_toolkit::anyhow::Result<()> {
+    Plugin::named("zwave-js-ui")
+        .version(env!("CARGO_PKG_VERSION"))
+        .service(ZwaveJsUiBackend::new("zwave-js-ui"))
+        .serve()
 }
